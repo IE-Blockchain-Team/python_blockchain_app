@@ -1,17 +1,13 @@
-# python_blockchain_app
+# Blockchain client and server
 
-A simple tutorial for developing a blockchain application from scratch in Python.
-
-## What is blockchain? How it is implemented? And how it works?
-
-Please read the [step-by-step implementation tutorial](https://www.ibm.com/developerworks/cloud/library/cl-develop-blockchain-app-in-python/index.html) to get your answers :)
+A basic blockchain server and application written in python using Flask and Requests. Forked from this [guide](https://www.ibm.com/developerworks/cloud/library/cl-develop-blockchain-app-in-python/index.html)
 
 ## Instructions to run
 
 Clone the project,
 
 ```sh
-$ git clone https://github.com/satwikkansal/python_blockchain_app.git
+$ git clone https://github.com/IE-Blockchain-Team/python_blockchain_app.git
 ```
 
 Install the dependencies,
@@ -23,8 +19,14 @@ $ pip install -r requirements.txt
 
 Start a blockchain node server,
 
+For Windows
 ```sh
-# Windows users can follow this: https://flask.palletsprojects.com/en/1.1.x/cli/#application-discovery
+> set FLASK_APP=node_server.py
+> flask run
+```
+
+For Unix Bash
+```sh
 $ export FLASK_APP=node_server.py
 $ flask run --port 8000
 ```
