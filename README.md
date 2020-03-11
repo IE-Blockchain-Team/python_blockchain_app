@@ -22,7 +22,7 @@ Start a blockchain node server,
 For Windows
 ```sh
 > set FLASK_APP=node_server.py
-> flask run
+> flask run --port 8000
 ```
 
 For Unix Bash
