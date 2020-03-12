@@ -8,6 +8,7 @@ A basic blockchain server and application written in python using Flask and Requ
 
 | Action | Route | Path | Method
 | --------- | --- | --- | --- |
+| Save chain | /save | save a copy of the current chain locally | GET
 | Mine block | /mine | tells the node to mine.  Needs to have pending unconfirmed transactions. | GET
 | View chain | /chain | pulls copy of current chain and displays it in JSON format. | GET
 | View pending tx's | /pending_tx | query unconfirmed transactions | GET
