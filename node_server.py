@@ -2,6 +2,9 @@ from hashlib import sha256
 import json
 import time
 
+import os.path
+from os import path
+
 from flask import Flask, request
 import requests
 
@@ -134,12 +137,29 @@ class Blockchain:
 
         return True
 
+    # initialize the chain either by local_chain.txt or by creating the genesis block
+    def initialize_chain(self):
+        if path.exists('local_chain.txt'):
+            with open('local_chain.txt') as json_file:
+                data = json.load(json_file)
+                for block in data['chain']:
+                    currentBlock = Block(block['index'],
+                                        block['transactions'],
+                                        block['timestamp'],
+                                        block['previous_hash'],
+                                        block['nonce'])
+                    currentBlock.hash = block['hash']
+                    self.chain.append(currentBlock)
+        else:
+            self.create_genesis_block()
+
 
 app = Flask(__name__)
 
 # the node's copy of blockchain
 blockchain = Blockchain()
-blockchain.create_genesis_block()
+blockchain.initialize_chain()
+#blockchain.create_genesis_block()
 
 # the address to other participating members of the network
 peers = set()
@@ -176,6 +196,7 @@ def new_transaction():
 @app.route('/chain', methods=['GET'])
 def get_chain():
     chain_data = []
+    print(blockchain.chain)
     for block in blockchain.chain:
         chain_data.append(block.__dict__)
     return json.dumps({"length": len(chain_data),
