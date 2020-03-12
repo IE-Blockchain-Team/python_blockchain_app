@@ -2,6 +2,26 @@
 
 A basic blockchain server and application written in python using Flask and Requests. Forked from this [guide](https://www.ibm.com/developerworks/cloud/library/cl-develop-blockchain-app-in-python/index.html)
 
+## REST API Reference
+
+### node_server.py
+
+| Action | Route | Path | Method
+| --- | --- | --- | --- |
+| Mine block | /mine | tells the node to mine.  Needs to have pending unconfirmed transactions. | GET
+| View chain | /chain | pulls copy of current chain and displays it in JSON format. | GET
+| View pending tx's | /pending_tx | query unconfirmed transactions | GET
+| Add peer | /register_with | add new peer to the network | POST
+| Add block | /add_block | add a block mined by someone else to the node's chain | POST
+
+
+### run_app.py
+
+| Action | Route | Description | Method
+| --- | --- | --- | --- |
+| View main page | / | Allows for manual data submission, and shows a post for every block on the retrieved chain |
+| Submit data | /submit | A submit button to manually submit/broadcast transaction data to localhost:8000 |
+
 ## Instructions to run
 
 Clone the project,
