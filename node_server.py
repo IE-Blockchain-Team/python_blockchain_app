@@ -145,6 +145,13 @@ blockchain.create_genesis_block()
 peers = set()
 
 
+# endpoint to tell the server to save a copy of the current chain
+@app.route('/save', methods=['GET'])
+def update_local_chain():
+    with open('local_chain.txt', 'w') as f:
+        f.write(get_chain())
+    return "Success", 201
+
 # endpoint to submit a new transaction. This will be used by
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
@@ -173,7 +180,7 @@ def get_chain():
         chain_data.append(block.__dict__)
     return json.dumps({"length": len(chain_data),
                        "chain": chain_data,
-                       "peers": list(peers)})
+                       "peers": list(peers)}, indent=4)
 
 
 # endpoint to request the node to mine the unconfirmed
