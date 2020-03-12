@@ -7,7 +7,7 @@ A basic blockchain server and application written in python using Flask and Requ
 ### node_server.py
 
 | Action | Route | Path | Method
-| --- | --- | --- | --- |
+| --------- | --- | --- | --- |
 | Mine block | /mine | tells the node to mine.  Needs to have pending unconfirmed transactions. | GET
 | View chain | /chain | pulls copy of current chain and displays it in JSON format. | GET
 | View pending tx's | /pending_tx | query unconfirmed transactions | GET
@@ -18,7 +18,7 @@ A basic blockchain server and application written in python using Flask and Requ
 ### run_app.py
 
 | Action | Route | Description | Method
-| --- | --- | --- | --- |
+| --------- | --- | --- | --- |
 | View main page | / | Allows for manual data submission, and shows a post for every block on the retrieved chain |
 | Submit data | /submit | A submit button to manually submit/broadcast transaction data to localhost:8000 |
 
