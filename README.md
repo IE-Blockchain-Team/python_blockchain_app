@@ -19,8 +19,8 @@ A basic blockchain server and application written in python using Flask and Requ
 
 | Action | Route | Description | Method
 | --------- | --- | --- | --- |
-| View main page | / | Allows for manual data submission, and shows a post for every block on the retrieved chain |
-| Submit data | /submit | A submit button to manually submit/broadcast transaction data to localhost:8000 |
+| View main page | / | Allows for manual data submission, and shows a post for every block on the retrieved chain | GET
+| Submit data | /submit | A submit button to manually submit/broadcast transaction data to localhost:8000 | POST
 
 ## Instructions to run
 
