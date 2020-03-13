@@ -1,4 +1,3 @@
-from hashlib import sha256
 import json
 import time
 
@@ -8,162 +7,54 @@ from os import path
 from flask import Flask, request
 import requests
 
-
-class Block:
-    def __init__(self, index, transactions, timestamp, previous_hash, nonce=0):
-        self.index = index
-        self.transactions = transactions
-        self.timestamp = timestamp
-        self.previous_hash = previous_hash
-        self.nonce = nonce
-
-    def compute_hash(self):
-        """
-        A function that return the hash of the block contents.
-        """
-        block_string = json.dumps(self.__dict__, sort_keys=True)
-        return sha256(block_string.encode()).hexdigest()
+import blockchainClass as chainClass
 
 
-class Blockchain:
-    # difficulty of our PoW algorithm
-    difficulty = 2
+def create_chain_from_dump(chain_dump):
+    generated_blockchain = chainClass.Blockchain()
+    generated_blockchain.create_genesis_block()
+    for idx, block_data in enumerate(chain_dump):
+        if idx == 0:
+            continue  # skip genesis block
+        block = chainClass.Block(block_data["index"],
+                    block_data["transactions"],
+                    block_data["timestamp"],
+                    block_data["previous_hash"],
+                    block_data["nonce"])
+        proof = block_data['hash']
+        added = generated_blockchain.add_block(block, proof)
+        if not added:
+            raise Exception("The chain dump is tampered!!")
+    return generated_blockchain
 
-    def __init__(self):
-        self.unconfirmed_transactions = []
-        self.chain = []
-
-    def create_genesis_block(self):
-        """
-        A function to generate genesis block and appends it to
-        the chain. The block has index 0, previous_hash as 0, and
-        a valid hash.
-        """
-        genesis_block = Block(0, [], 0, "0")
-        genesis_block.hash = genesis_block.compute_hash()
-        self.chain.append(genesis_block)
-
-    @property
-    def last_block(self):
-        return self.chain[-1]
-
-    def add_block(self, block, proof):
-        """
-        A function that adds the block to the chain after verification.
-        Verification includes:
-        * Checking if the proof is valid.
-        * The previous_hash referred in the block and the hash of latest block
-          in the chain match.
-        """
-        previous_hash = self.last_block.hash
-
-        if previous_hash != block.previous_hash:
-            return False
-
-        if not Blockchain.is_valid_proof(block, proof):
-            return False
-
-        block.hash = proof
-        self.chain.append(block)
-        return True
-
-    @staticmethod
-    def proof_of_work(block):
-        """
-        Function that tries different values of nonce to get a hash
-        that satisfies our difficulty criteria.
-        """
-        block.nonce = 0
-
-        computed_hash = block.compute_hash()
-        while not computed_hash.startswith('0' * Blockchain.difficulty):
-            block.nonce += 1
-            computed_hash = block.compute_hash()
-
-        return computed_hash
-
-    def add_new_transaction(self, transaction):
-        self.unconfirmed_transactions.append(transaction)
-
-    @classmethod
-    def is_valid_proof(cls, block, block_hash):
-        """
-        Check if block_hash is valid hash of block and satisfies
-        the difficulty criteria.
-        """
-        return (block_hash.startswith('0' * Blockchain.difficulty) and
-                block_hash == block.compute_hash())
-
-    @classmethod
-    def check_chain_validity(cls, chain):
-        result = True
-        previous_hash = "0"
-
-        for block in chain:
-            block_hash = block.hash
-            # remove the hash field to recompute the hash again
-            # using `compute_hash` method.
-            delattr(block, "hash")
-
-            if not cls.is_valid_proof(block, block_hash) or \
-                    previous_hash != block.previous_hash:
-                result = False
-                break
-
-            block.hash, previous_hash = block_hash, block_hash
-
-        return result
-
-    def mine(self):
-        """
-        This function serves as an interface to add the pending
-        transactions to the blockchain by adding them to the block
-        and figuring out Proof Of Work.
-        """
-        if not self.unconfirmed_transactions:
-            return False
-
-        last_block = self.last_block
-
-        new_block = Block(index=last_block.index + 1,
-                          transactions=self.unconfirmed_transactions,
-                          timestamp=time.time(),
-                          previous_hash=last_block.hash)
-
-        proof = self.proof_of_work(new_block)
-        self.add_block(new_block, proof)
-
-        self.unconfirmed_transactions = []
-
-        return True
-
-    # initialize the chain either by local_chain.txt or by creating the genesis block
-    def initialize_chain(self):
-        if path.exists('local_chain.txt'):
-            with open('local_chain.txt') as json_file:
-                data = json.load(json_file)
-                for block in data['chain']:
-                    currentBlock = Block(block['index'],
-                                        block['transactions'],
-                                        block['timestamp'],
-                                        block['previous_hash'],
-                                        block['nonce'])
-                    currentBlock.hash = block['hash']
-                    self.chain.append(currentBlock)
-        else:
-            self.create_genesis_block()
-
+# initialize the chain either by local_chain.txt or by creating the genesis block
+def local_chain_exists():
+    global blockchain
+    if path.exists('local_chain.txt'):
+        with open('local_chain.txt') as json_file:
+            data = json.load(json_file)
+            print(data['chain'])
+            create_chain_from_dump(data['chain'])
+        #    for block in data['chain']:
+        #        currentBlock = Block(block['index'],
+        #                            block['transactions'],
+        #                            block['timestamp'],
+        #                            block['previous_hash'],
+        #                            block['nonce'])
+        #        currentBlock.hash = block['hash']
+        #        self.chain.append(currentBlock)
+    else:
+        return False
+        #self.create_genesis_block()
 
 app = Flask(__name__)
 
 # the node's copy of blockchain
-blockchain = Blockchain()
+blockchain = chainClass.Blockchain()
 blockchain.initialize_chain()
-#blockchain.create_genesis_block()
 
 # the address to other participating members of the network
 peers = set()
-
 
 # endpoint to tell the server to save a copy of the current chain
 @app.route('/save', methods=['GET'])
@@ -267,32 +158,13 @@ def register_with_existing_node():
         # if something goes wrong, pass it on to the API response
         return response.content, response.status_code
 
-
-def create_chain_from_dump(chain_dump):
-    generated_blockchain = Blockchain()
-    generated_blockchain.create_genesis_block()
-    for idx, block_data in enumerate(chain_dump):
-        if idx == 0:
-            continue  # skip genesis block
-        block = Block(block_data["index"],
-                      block_data["transactions"],
-                      block_data["timestamp"],
-                      block_data["previous_hash"],
-                      block_data["nonce"])
-        proof = block_data['hash']
-        added = generated_blockchain.add_block(block, proof)
-        if not added:
-            raise Exception("The chain dump is tampered!!")
-    return generated_blockchain
-
-
 # endpoint to add a block mined by someone else to
 # the node's chain. The block is first verified by the node
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
 def verify_and_add_block():
     block_data = request.get_json()
-    block = Block(block_data["index"],
+    block = chainClass.Block(block_data["index"],
                   block_data["transactions"],
                   block_data["timestamp"],
                   block_data["previous_hash"],
@@ -336,7 +208,6 @@ def consensus():
         return True
 
     return False
-
 
 def announce_new_block(block):
     """
