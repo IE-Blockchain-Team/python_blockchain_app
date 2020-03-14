@@ -9,11 +9,13 @@ import requests
 
 import blockchainClass as chainClass
 
+import atexit
 
-def create_chain_from_dump(chain_dump):
+def create_chain_from_dump(chain_dump = None):
     generated_blockchain = chainClass.Blockchain()
     generated_blockchain.create_genesis_block()
     for idx, block_data in enumerate(chain_dump):
+        #print(block_data)
         if idx == 0:
             continue  # skip genesis block
         block = chainClass.Block(block_data["index"],
@@ -33,31 +35,23 @@ def local_chain_exists():
     if path.exists('local_chain.txt'):
         with open('local_chain.txt') as json_file:
             data = json.load(json_file)
-            print(data['chain'])
-            create_chain_from_dump(data['chain'])
-        #    for block in data['chain']:
-        #        currentBlock = Block(block['index'],
-        #                            block['transactions'],
-        #                            block['timestamp'],
-        #                            block['previous_hash'],
-        #                            block['nonce'])
-        #        currentBlock.hash = block['hash']
-        #        self.chain.append(currentBlock)
+            #print(data['chain'])
+            return create_chain_from_dump(data['chain'])
     else:
-        return False
-        #self.create_genesis_block()
+        return create_chain_from_dump()
 
 app = Flask(__name__)
 
 # the node's copy of blockchain
-blockchain = chainClass.Blockchain()
-blockchain.initialize_chain()
+blockchain = local_chain_exists()
+#atexit.register(update_local_chain)
 
 # the address to other participating members of the network
 peers = set()
 
 # endpoint to tell the server to save a copy of the current chain
 @app.route('/save', methods=['GET'])
+@atexit.register
 def update_local_chain():
     with open('local_chain.txt', 'w') as f:
         f.write(get_chain())
@@ -87,7 +81,7 @@ def new_transaction():
 @app.route('/chain', methods=['GET'])
 def get_chain():
     chain_data = []
-    print(blockchain.chain)
+    #print(blockchain.chain)
     for block in blockchain.chain:
         chain_data.append(block.__dict__)
     return json.dumps({"length": len(chain_data),
