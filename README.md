@@ -4,7 +4,7 @@ A basic blockchain server and application written in python using Flask and Requ
 
 ## REST API Reference
 
-### node_server.py (Network Node)
+### node_server.py (Full/Master Node)
 
 | Action | Route | Path | Method
 | --------- | --- | --- | --- |
@@ -16,7 +16,7 @@ A basic blockchain server and application written in python using Flask and Requ
 | Add block | /add_block | add a block mined by someone else to the node's chain | POST
 
 
-### run_app.py (Front-end application)
+### run_app.py (Basic Node / Front-end application)
 
 | Action | Route | Description | Method
 | --------- | --- | --- | --- |
@@ -98,3 +98,11 @@ Once you do all this, you can run the application, create transactions (post mes
 $ curl -X GET http://localhost:8001/chain
 $ curl -X GET http://localhost:8002/chain
 ```
+
+## Terminology
+
+Node: A computer that operates on the blockchain network which is able to send and receive transactions.
+
+Full node: A client that operates on the network and maintains a full copy of the blockchain. Sends and receives TX as well, updates the blockchain with block entries and confirmations from miners.
+
+Master nodes: Master nodes enable decentralized governance and budgeting. In summary, aside from a full copy of the blockchain, a node also keeps additional data structures, such as the unspent transaction outputs cache or the unconfirmed transactions’ memory pool, so it can quickly validate new received transactions and mined blocks. If the received transaction or block is valid, the master node updates its data structures and relays it to the connected nodes. It is important to note that a master node does not need to trust other nodes because it independently validates all the information it receives from them.
