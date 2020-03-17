@@ -1,3 +1,6 @@
 *.pyc
 **/*.pyc
 local_chain.txt
+.idea/misc.xml
+*.xml
+*.iml
