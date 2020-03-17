@@ -11,22 +11,23 @@ import blockchainClass as chainClass
 
 import atexit
 
-def create_chain_from_dump(chain_dump = None):
+def create_chain_from_dump(chain_dump = None, noChain = False):
     generated_blockchain = chainClass.Blockchain()
     generated_blockchain.create_genesis_block()
-    for idx, block_data in enumerate(chain_dump):
-        #print(block_data)
-        if idx == 0:
-            continue  # skip genesis block
-        block = chainClass.Block(block_data["index"],
-                    block_data["transactions"],
-                    block_data["timestamp"],
-                    block_data["previous_hash"],
-                    block_data["nonce"])
-        proof = block_data['hash']
-        added = generated_blockchain.add_block(block, proof)
-        if not added:
-            raise Exception("The chain dump is tampered!!")
+    if not noChain:
+        for idx, block_data in enumerate(chain_dump):
+            #print(block_data)
+            if idx == 0:
+                continue  # skip genesis block
+            block = chainClass.Block(block_data["index"],
+                        block_data["transactions"],
+                        block_data["timestamp"],
+                        block_data["previous_hash"],
+                        block_data["nonce"])
+            proof = block_data['hash']
+            added = generated_blockchain.add_block(block, proof)
+            if not added:
+                raise Exception("The chain dump is tampered!!")
     return generated_blockchain
 
 # initialize the chain either by local_chain.txt or by creating the genesis block
@@ -38,7 +39,7 @@ def local_chain_exists():
             #print(data['chain'])
             return create_chain_from_dump(data['chain'])
     else:
-        return create_chain_from_dump()
+        return create_chain_from_dump(noChain = True)
 
 app = Flask(__name__)
 
