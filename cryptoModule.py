@@ -3,6 +3,18 @@ from Crypto.PublicKey import RSA
 from Crypto import Random
 import base64
 
+# encrypt
+def encrypt(rsa_publickey,plain_text):
+     cipher_text=rsa_publickey.encrypt(plain_text,32)[0]
+     b64cipher=base64.b64encode(cipher_text)
+     return b64cipher
+
+# decrypt
+def decrypt(rsa_privatekey,b64cipher):
+     decoded_ciphertext = base64.b64decode(b64cipher)
+     plaintext = rsa_privatekey.decrypt(decoded_ciphertext)
+     return plaintext
+
 # Key pair generation
 def rsakeys():  
      length=1024  
