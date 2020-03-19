@@ -1,6 +1,6 @@
 *.pyc
 **/*.pyc
 local_chain.txt
-.idea/rSettings.xml
 *.xml
 *.bin
+*.code-workspace
