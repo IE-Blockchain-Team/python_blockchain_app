@@ -9,16 +9,22 @@ import time
 
 import cryptoModule
 
-def openWallet():
-    walletName = input("Name of wallet to open:")
-    password = input("Password:")
+def openWallet(walletName=None,password=None):
+    if walletName is None:
+        walletName = input("Name of wallet to open:")
+    if password is None:
+        password = input("Password:")
     fileIn = open(walletName, "rb")
     nonce, tag, ciphertext = [ fileIn.read(x) for x in (16, 16, -1) ]
     fileIn.close()
     keys = PBKDF2(password, ciphertext[-16:], 64, count=1000000, hmac_hash_module=SHA512)
     key1 = keys[:32]
     cipher = AES.new(key1, AES.MODE_EAX, nonce)
-    data = cipher.decrypt_and_verify(ciphertext[:-16], tag)
+    try:
+        data = cipher.decrypt_and_verify(ciphertext[:-16], tag)
+    except ValueError:
+        print("Invlaid password!")
+        raise ValueError
     print("data: %s", data)
     return data
 
@@ -45,16 +51,14 @@ def createWallet():
     ciphertext, tag = cipher.encrypt_and_digest(privKey)
     # Append salt to ciphertext
     ciphertext += salt
-
+    print("Wallet data successfully encrypted with AES using salted PBKDF2 key.")
     if os.path.isfile('wallet.bin'):
-        print("Found existing wallet.bin")
         counter = 0
         while (os.path.isfile('wallet{}.bin'.format(counter))):
             time.sleep(0.5)
             counter += 1
         newWalletName = 'wallet{}.bin'.format(counter)
     else:
-        print("No wallet found, creating new wallet")
         newWalletName = 'wallet.bin'
     file_out = open(newWalletName, "wb")
     #print(cipher.nonce)
@@ -65,13 +69,17 @@ def createWallet():
     file_out.close()
     print("Wallet saved as: ", newWalletName)
 
-while (True):
-    option = input("Wallet Manager, Select Option:\n1-Create Key Pair and save to wallet\n2-Open Wallet\n3-Exit\nOption:")
-    if (option == '1'):
-        createWallet()
-    elif (option == '2'):
-        openWallet()
-    elif (option == '3'):
-        break
-    else:
-        print("Invalid Option...")
+
+
+
+if __name__ == '__main__':
+    while (True):
+        option = input("\n\nWallet Manager, Select Option:\n1-Create Key Pair and save to wallet\n2-Open Wallet\n3-Exit\nOption:")
+        if (option == '1'):
+            createWallet()
+        elif (option == '2'):
+            openWallet()
+        elif (option == '3'):
+            break
+        else:
+            print("Invalid Option...")

@@ -25,6 +25,10 @@ A basic blockchain server and application written in python using Flask and Requ
 
 ## Instructions to run
 
+Tip:  May want to also during development
+```sh
+> set FLASK_ENV=development
+```
 
 Install the dependencies,
 

@@ -29,3 +29,7 @@ def sign(privatekey,data):
 # Verify a message
 def verify(publickey,data,sign):
      return publickey.verify(data,(int(base64.b64decode(sign)),))
+
+# Import an RSA key from file?
+def importKey(externKey):
+    return RSA.importKey(externKey)

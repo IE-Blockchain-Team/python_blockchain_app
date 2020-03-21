@@ -2,7 +2,9 @@ import datetime
 import json
 
 import requests
-from flask import render_template, redirect, request
+import walletManager
+import cryptoModule
+from flask import render_template, redirect, request, flash
 
 from app import app
 
@@ -38,8 +40,7 @@ def fetch_posts():
 def index():
     fetch_posts()
     return render_template('index.html',
-                           title='YourNet: Decentralized '
-                                 'content sharing',
+                           title='Supply Chain Use Case Example',
                            posts=posts,
                            node_address=CONNECTED_NODE_ADDRESS,
                            readable_time=timestamp_to_string)
@@ -51,21 +52,52 @@ def submit_textarea():
     Endpoint to create a new transaction via our application.
     """
     post_content = request.form["content"]
-    author = request.form["author"]
+    walletName = request.form["walletName"]
+    password = request.form["password"]
+    error = None
+    
+    if not post_content:
+        error = "Must provide item data"
+    elif not walletName:
+        error = "Must provide walletName"
+    elif not password:
+        error = "Must provide wallet password"
+    else:
+        # try to open wallet
+        try:
+            walletData = walletManager.openWallet(walletName, password)
+        except ValueError:
+            error = "Unable to open wallet due to invalid password"
+    
+    if error is None:
+        # private key from wallet is read, now import
+        importedPrivKey = cryptoModule.importKey(walletData)
+        # this key can now be used to sign data, and also we can generate a public key
+        importedPubKey = importedPrivKey.publickey()
+        # sign the message being put into the tx
+        
+        post_object = {
+            # public key of signee
+            'author': importedPubKey.exportKey().decode("utf-8"),
+            # signed message
+            'content': post_content,
+        }
 
-    post_object = {
-        'author': author,
-        'content': post_content,
-    }
+        # Submit a transaction
+        new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
 
-    # Submit a transaction
-    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
+        requests.post(new_tx_address,
+                    json=post_object,
+                    headers={'Content-type': 'application/json'})
 
-    requests.post(new_tx_address,
-                  json=post_object,
-                  headers={'Content-type': 'application/json'})
+        return redirect('/')
 
-    return redirect('/')
+    # display error
+    flash(error)
+    return render_template('index.html', title='Supply Chain Use Case Example',
+                           posts=posts,
+                           node_address=CONNECTED_NODE_ADDRESS,
+                           readable_time=timestamp_to_string)
 
 
 def timestamp_to_string(epoch_time):
