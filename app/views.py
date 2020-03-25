@@ -54,6 +54,8 @@ def submit_textarea():
     post_content = request.form["content"]
     walletName = request.form["walletName"]
     password = request.form["password"]
+    receiver = request.form["receiver"]
+
     error = None
     
     if not post_content:
@@ -62,6 +64,8 @@ def submit_textarea():
         error = "Must provide walletName"
     elif not password:
         error = "Must provide wallet password"
+    elif not receiver:
+        error = "Must select a receiver to send the item to"
     else:
         # try to open wallet
         try:
@@ -73,15 +77,23 @@ def submit_textarea():
         # private key from wallet is read, now import
         importedPrivKey = cryptoModule.importKey(walletData)
         # this key can now be used to sign data, and also we can generate a public key
-        importedPubKey = importedPrivKey.publickey()
-        # sign the message being put into the tx
-        
+        importedPubKey = importedPrivKey.publickey()        
+        # Signed Message Data Struct:  Message | Receiver
+        signature = {
+            "signedMessage": None,
+            "receiver": None
+        }
+
+        # sign the message being put into the tx (will be in base64 encoding)
+        signature["signedMessage"] = cryptoModule.sign(importedPrivKey, post_content)
+        signature["receiver"] = "Bob"
         post_object = {
             # public key of signee
             'author': importedPubKey.exportKey().decode("utf-8"),
             # signed message
-            'content': post_content,
+            'content': signature,
         }
+
 
         # Submit a transaction
         new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
