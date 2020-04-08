@@ -1,6 +1,8 @@
 import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random
+from Crypto.Signature import pkcs1_15
+from Crypto.Hash import SHA256
 import base64
 
 # encrypt
@@ -24,11 +26,17 @@ def rsakeys():
 
 # Signing a message
 def sign(privatekey,data):
-    return base64.b64encode(str((privatekey.sign(data,''))[0]).encode())
+     h = SHA256.new(data)  #data.encode()  <- removed since we are now passing a bytearray object
+     return pkcs1_15.new(privatekey).sign(h)
+     #return base64.b64encode(str(pkcs1_15.new(privatekey).sign(h)).encode())
+    #return base64.b64encode(str((privatekey.sign(data,''))[0]).encode())
 
 # Verify a message
 def verify(publickey,data,sign):
-     return publickey.verify(data,(int(base64.b64decode(sign)),))
+     data = SHA256.new(data)
+     return pkcs1_15.new(publickey).verify(data, sign)
+     #return publickey.verify(data,sign)
+     #return publickey.verify(data,(int(base64.b64decode(sign))))
 
 # Import an RSA key from file?
 def importKey(externKey):

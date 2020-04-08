@@ -55,6 +55,11 @@ def submit_textarea():
     walletName = request.form["walletName"]
     password = request.form["password"]
     receiver = request.form["receiver"]
+    
+    # example for use case
+    addrBook = {
+        "delivery_A": b"-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDihpxy/szVtXY+eCfFB59Ho2n1\nU/ULgcXur+I7T4Aji0XDRyR79ueyz1u0HElkxkxiXXVKBUZFgt8PxYUxISQTu24Y\n9UaGBqjlXt/eCGA7e4CRohwqj73OCYELXQbIulHZrB+sRNDA5mgce0Vc5Nk4LpSV\neweJ6kR/W8dkQvqRuQIDAQAB\n-----END PUBLIC KEY-----"
+    }
 
     error = None
     
@@ -84,14 +89,25 @@ def submit_textarea():
             "receiver": None
         }
 
+        signature["receiver"] = addrBook[receiver]
+
+        post_content = bytearray(post_content, 'utf8')
+        post_content = post_content + b'|' + signature["receiver"]
+        
+        print(post_content)
+        print(post_content.decode('utf-8'))
+        
         # sign the message being put into the tx (will be in base64 encoding)
-        signature["signedMessage"] = cryptoModule.sign(importedPrivKey, post_content)
-        signature["receiver"] = "Bob"
+        signature["signedMessage"] = cryptoModule.sign(importedPrivKey, post_content)  #A hash will be generated of the message, and that hash will be signed.  We can then verify signature, and then data integrity.
+        print(signature["signedMessage"])
+        print(cryptoModule.verify(importedPubKey, post_content, signature["signedMessage"]))
+
         post_object = {
             # public key of signee
-            'author': importedPubKey.exportKey().decode("utf-8"),
+            'senderPK': importedPubKey.exportKey().decode("utf-8"),
             # signed message
-            'content': signature,
+            'signature': signature["signedMessage"].decode('latin-1'),
+            'data': post_content.decode('utf-8')
         }
 
 

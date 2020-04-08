@@ -8,6 +8,7 @@ from flask import Flask, request
 import requests
 
 import blockchainClass as chainClass
+import cryptoModule
 
 import atexit
 
@@ -63,11 +64,28 @@ def update_local_chain():
 @app.route('/new_transaction', methods=['POST'])
 def new_transaction():
     tx_data = request.get_json()
-    required_fields = ["author", "content"]
+    required_fields = ["senderPK", "signature", "data"]
 
     for field in required_fields:
+        print(tx_data.get(field))
         if not tx_data.get(field):
             return "Invalid transaction data", 404
+        
+        if field == "signature":
+            # Transaction validation process:
+            # 1.  Verify the signature
+            print(tx_data[field].encode('latin-1'))
+            print("test")
+            print(tx_data["senderPK"])
+            print(tx_data["data"])
+            #see if value_error exception is raised by cryptoModule.verify()
+            valid_data = tx_data["signature"].encode('latin-1')
+            #valid_data = bytearray(valid_data)
+            #valid_data[0] = 5
+            print(valid_data)
+            importedPubKey = cryptoModule.importKey(tx_data["senderPK"])
+            print(cryptoModule.verify(importedPubKey, bytearray(tx_data["data"], 'utf8'), valid_data))
+            # 2.  Verify the data authenticity
 
     tx_data["timestamp"] = time.time()
 
@@ -177,7 +195,12 @@ def verify_and_add_block():
 # endpoint to query unconfirmed transactions
 @app.route('/pending_tx')
 def get_pending_tx():
-    return json.dumps(blockchain.unconfirmed_transactions)
+    viewable_unconfirmed_transactions = blockchain.unconfirmed_transactions
+    for field in blockchain.unconfirmed_transactions:
+        if field == "signature":
+            viewable_unconfirmed_transactions["signature"] = blockchain.unconfirmed_transactions["signature"].encode("latin-1")
+    
+    return json.dumps(viewable_unconfirmed_transactions)
 
 
 def consensus():

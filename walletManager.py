@@ -35,9 +35,9 @@ def createWallet():
     privKey, pubKey = cryptoModule.rsakeys()
     # Export our RSA private key so it can be saved to file  (RSA Public Key can always be generated from private key)
     privKey = privKey.export_key()
-    #pubKey = pubKey.export_key()
+    pubKey = pubKey.export_key()
     print("private key: " + str(privKey) + "\n length: " + str(len(privKey)) + '\n')
-    #print("public key: " + str(pubKey) + "\n length: " + str(len(pubKey)) + '\n')
+    print("public key: " + str(pubKey) + "\n length: " + str(len(pubKey)) + '\n')
     # Generate a salt to use PBKDF2.  This will generate a key for our AES file encryption.
     salt = get_random_bytes(16)
     #print("salt: " + str(salt) + " length: " + str(len(salt)))
