@@ -4,3 +4,5 @@ local_chain.txt
 *.xml
 *.bin
 *.code-workspace
+env/
+settings.json
