@@ -3,6 +3,7 @@ import json
 
 import requests
 import walletManager
+import addressBookClass
 import cryptoModule
 from flask import render_template, redirect, request, flash
 
@@ -14,31 +15,57 @@ CONNECTED_NODE_ADDRESS = "http://127.0.0.1:8000"
 
 posts = []
 
+addressBook = addressBookClass.AddressBook()
 
-def fetch_posts():
+
+def fetch_posts(query = None):
     """
     Function to fetch the chain from a blockchain node, parse the
     data and store it locally.
     """
+    
     get_chain_address = "{}/chain".format(CONNECTED_NODE_ADDRESS)
     response = requests.get(get_chain_address)
     if response.status_code == 200:
         content = []
         chain = json.loads(response.content)
         for block in chain["chain"]:
+            print("WHY1")
             for tx in block["transactions"]:
-                tx["index"] = block["index"]
-                tx["hash"] = block["previous_hash"]
-                content.append(tx)
+                print("WHY2")
+                print(query)
+                print(tx["senderPK"])
+                tx["author"] = addressBook.pk_to_name(bytes(tx["senderPK"], 'utf-8'))
+                print(tx["author"])
+                if not query:
+                    tx["index"] = block["index"]
+                    tx["hash"] = block["previous_hash"]
+                    end = tx["data"].find('|')
+                    tx["item"] = tx["data"][0:end]
+                    content.append(tx)
+                else:
+                    print(query)
+                    end = tx["data"].find('|')
+                    tx["item"] = tx["data"][0:end]
+                    if tx["item"] == query:
+                        content.append(tx)
+            
+        if len(content) == 0 and query:
+                    print("WHY3")
+                    error = "Item has no history!"
+                    flash(error)
+                    #return render_template('base.html', title='Query Page')
+
 
         global posts
         posts = sorted(content, key=lambda k: k['timestamp'],
-                       reverse=True)
+                    reverse=True)
+
 
 
 @app.route('/')
-def index():
-    fetch_posts()
+def index(post_content = None):
+    fetch_posts(post_content)
     return render_template('index.html',
                            title='Supply Chain Use Case Example',
                            posts=posts,
@@ -56,26 +83,17 @@ def submit_textarea():
     password = request.form["password"]
     receiver = request.form["receiver"]
     
-    # example for use case
-    addrBook = {
-        "farm_A": b"-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQChMJf/mB0mUtAIGHJLPeM1ZBk2\nq4vOtjmvlhoA4ZHpm6O9UJags5GELsxHk7my8WDOlb9fpgHM2hue6uY/a6QBuVus\n7ZIqKEm8D/Z9EF6nFxkAgD8tavuRYcDnOEkfRr7Gy7oAdtrbuoIuccu9gRQOpqex\nnYhLPm/d4EvgUEBNYQIDAQAB\n-----END PUBLIC KEY-----",
-        "farm_B": b"-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDR7fbY0YixX0IqQHTIFAJOmPa4\n0MmFixcmYXPtA8zhlMbBAnYkIT2V1W6cthRwCcY3MtXJ2fyf5e+wcV8u5tgJ1POa\n0sPUF4ydPbCDh+wXq/5fumqxNH9pNa57b8CtsZMfiV51BbVgmYy1shp2VVoo8m8o\niBiVMq416lrilSBSwwIDAQAB\n-----END PUBLIC KEY-----",
-        "delivery_A":b'-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCx4sgu15iWFv0gMrl19NSJ+Wyg\nNCOag2LjmlFTeYfUAlRenDSJJF7EC+NqmwVgVnKNd23CLQK44/zIQfy0LHp8Lf7o\nY5YdPBlARhGm8o0uRbNWMrrULoVP7dzQ36J5XGRJjVebOVd49crDrTKbGcCLw+5M\nwD8qEuzYsdR4vP6ZUwIDAQAB\n-----END PUBLIC KEY-----',
-        "delivery_B": b'-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCd8sh6m6EihlSthqjOA/PiT5aG\nWj/XrRJXCmjNkQyDcwKSarB994bJmOgHZu6Q35dYYzge88S1cqLdxIbRdSCqlsRH\n+ZvMYbree462Kh85NJftxYi6UWxUek9ST89bpUNMa6Gd1RCc5BuDL8tTySSz2Mm8\nFI6AZpXGznQF86SLkwIDAQAB\n-----END PUBLIC KEY-----',
-        "store_A":b'-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCdZeE+gpg+g2/d3khz/jsB8pRp\nOPyD1UqW4jpY6U/e+Roh+Ppkkd/BwK6WLvBkHGn1G6T7G9AacSSwnRjyJlD04bbb\necobrVlkVeI4OP+5l/q4el9Swz0O8mZ9yrVwuyTKvYvLsArDWxcdiCzgCoDOyFHb\nkUP+D1Vvh0Uz3Ky0BQIDAQAB\n-----END PUBLIC KEY-----',
-        "store_B":b'-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDtSsNGEcLF3itjMk43Jvg/x2B\nL4SI7Z6Boyg1scFVT+GnIDyx2UijkTt2ZimKHPe0VLrPO4j8dCrhihW+Zz1qRmZR\nXnzfYb3kdt+BCgXg63t+uWIGfJbTRxss+TnjuyQdbwTrAvgtlqdpWe7e/uqvYl+w\nr59ryw8d9+OJ2FAD+QIDAQAB\n-----END PUBLIC KEY-----',
-    }
-
     error = None
     
     if not post_content:
         error = "Must provide item data"
     elif not walletName:
-        error = "Must provide walletName"
+        return index(post_content)
+        #error = "Must provide walletName"
     elif not password:
-        error = "Must provide wallet password"
+        error = "Must provide wallet password when using a wallet"
     elif not receiver:
-        error = "Must select a receiver to send the item to"
+        error = "Must select a receiver to send the item to when using a wallet"
     else:
         # try to open wallet
         try:
@@ -94,7 +112,7 @@ def submit_textarea():
             "receiver": None
         }
 
-        signature["receiver"] = addrBook[receiver]
+        signature["receiver"] = addressBook.addrBook[receiver]
 
         post_content = bytearray(post_content, 'utf8')
         post_content = post_content + b'|' + signature["receiver"]
@@ -135,3 +153,4 @@ def submit_textarea():
 
 def timestamp_to_string(epoch_time):
     return datetime.datetime.fromtimestamp(epoch_time).strftime('%H:%M')
+    
