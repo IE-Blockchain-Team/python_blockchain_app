@@ -30,31 +30,27 @@ def fetch_posts(query = None):
         content = []
         chain = json.loads(response.content)
         for block in chain["chain"]:
-            print("WHY1")
+            #print("WHY1")
             for tx in block["transactions"]:
-                print("WHY2")
+                #print("WHY2")
                 print(query)
-                print(tx["senderPK"])
+                #print(tx["senderPK"])
                 tx["author"] = addressBook.pk_to_name(bytes(tx["senderPK"], 'utf-8'))
-                print(tx["author"])
+                begin = tx["data"].find('|') + 1
+                #print(tx["data"][begin:])
+                tx["receiver"] = addressBook.pk_to_name(bytes(tx["data"][begin:], 'utf-8'))
+                end = tx["data"].find('|')
+                tx["item"] = tx["data"][0:end]
+                tx["output"] = tx["item"] + " sent to " + tx["receiver"]
                 if not query:
-                    tx["index"] = block["index"]
-                    tx["hash"] = block["previous_hash"]
-                    end = tx["data"].find('|')
-                    tx["item"] = tx["data"][0:end]
                     content.append(tx)
                 else:
-                    print(query)
-                    end = tx["data"].find('|')
-                    tx["item"] = tx["data"][0:end]
                     if tx["item"] == query:
                         content.append(tx)
             
         if len(content) == 0 and query:
-                    print("WHY3")
                     error = "Item has no history!"
                     flash(error)
-                    #return render_template('base.html', title='Query Page')
 
 
         global posts
