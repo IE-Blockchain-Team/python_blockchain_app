@@ -2,6 +2,20 @@
 
 A basic blockchain server and application written in python using Flask and Requests. Forked from this [guide](https://www.ibm.com/developerworks/cloud/library/cl-develop-blockchain-app-in-python/index.html)
 
+## Features
+* Wallet file generation
+  * Uses PBKDF2 for key generation given a password
+  * Wallet is encrypted with AES via this key
+* Consensus algorithm
+  * The node with the longest verifiable chain is what the network agrees on
+  * Chain is verified
+* User interface
+  * Used by entities of the supply chain
+  * Takes a wallet file, password, and the data to put on the chain
+  * Digital Signatures
+  * Provide integrity for transactions on the blockchain
+  * Data to be added to the chain is signed by the entity's wallet file
+
 ## REST API Reference
 
 ### node_server.py (Full/Master Node)
