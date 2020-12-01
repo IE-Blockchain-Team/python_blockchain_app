@@ -3,6 +3,9 @@
 A basic blockchain server and application written in python using Flask and Requests. Forked from this [guide](https://www.ibm.com/developerworks/cloud/library/cl-develop-blockchain-app-in-python/index.html)
 
 ## Features
+* Decentralization
+  * Each node follows a consensus algorithm
+  * Transactions are broadcasted to all nodes
 * Wallet file generation
   * Uses PBKDF2 for key generation given a password
   * Wallet is encrypted with AES via this key
@@ -15,6 +18,7 @@ A basic blockchain server and application written in python using Flask and Requ
   * Digital Signatures
   * Provide integrity for transactions on the blockchain
   * Data to be added to the chain is signed by the entity's wallet file
+  
 
 ## REST API Reference
 
