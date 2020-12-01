@@ -43,12 +43,12 @@ A basic blockchain data-structure that runs on a distributed network of nodes.  
 
 ## Instructions to run
 
-Tip:  May want to also during development
+Optional:
 ```sh
 > set FLASK_ENV=development
 ```
 
-Install the dependencies,
+Install dependencies
 
 ```sh
 > cd python_blockchain_app
@@ -71,8 +71,7 @@ $ flask run --port 8000
 
 One instance of our blockchain node is now up and running at port 8000.
 
-
-Run the application on a different terminal session,
+Run the application on a different terminal session
 
 ```sh
 $ python run_app.py
