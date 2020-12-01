@@ -1,6 +1,6 @@
 # Blockchain client and server
 
-A basic blockchain server and application written in python using Flask and Requests. Forked from this [guide](https://www.ibm.com/developerworks/cloud/library/cl-develop-blockchain-app-in-python/index.html)
+A basic blockchain data-structure that runs on a distributed network of nodes.  The chain has immutability since all blocks contain a hash of the previously generated block to the origin node. Written in python using Flask and Requests. Forked from this [guide](https://www.ibm.com/developerworks/cloud/library/cl-develop-blockchain-app-in-python/index.html)
 
 ## Features
 * Decentralization
